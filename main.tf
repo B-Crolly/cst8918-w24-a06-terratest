@@ -18,6 +18,15 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+
+  depends_on = [
+    azurerm_resource_group.rg
+  ]
+
+  timeouts {
+    create = "5m"
+    delete = "10m"
+  }
 }
 
 
@@ -27,6 +36,16 @@ resource "azurerm_subnet" "webserver" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+
+  depends_on = [
+    azurerm_virtual_network.vnet,
+    azurerm_resource_group.rg
+  ]
+
+  timeouts {
+    create = "5m"
+    delete = "10m"
+  }
 }
 
 # Define network security group and rules
@@ -58,6 +77,15 @@ resource "azurerm_network_security_group" "webserver" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  depends_on = [
+    azurerm_resource_group.rg
+  ]
+
+  timeouts {
+    create = "5m"
+    delete = "10m"
+  }
 }
 
 # Define the network interface
@@ -65,6 +93,7 @@ resource "azurerm_network_interface" "webserver" {
   name                = "${var.labelPrefix}A05Nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  enable_ip_forwarding = false
 
   ip_configuration {
     name                          = "${var.labelPrefix}A05NicConfig"
@@ -73,7 +102,16 @@ resource "azurerm_network_interface" "webserver" {
     public_ip_address_id          = azurerm_public_ip.webserver.id
   }
 
-  depends_on = [azurerm_network_security_group.webserver]
+  depends_on = [
+    azurerm_network_security_group.webserver,
+    azurerm_subnet.webserver,
+    azurerm_public_ip.webserver
+  ]
+
+  timeouts {
+    create = "5m"
+    delete = "10m"
+  }
 }
 
 # Link the security group to the NIC
@@ -106,7 +144,7 @@ resource "azurerm_linux_virtual_machine" "webserver" {
   resource_group_name   = azurerm_resource_group.rg.name
   location              = azurerm_resource_group.rg.location
   network_interface_ids = [azurerm_network_interface.webserver.id]
-  size                  = "Standard_B1s"
+  size                  = var.vm_size
 
   os_disk {
     name                 = "${var.labelPrefix}A05OSDisk"
