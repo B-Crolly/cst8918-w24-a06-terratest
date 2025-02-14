@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/gruntwork-io/terratest/modules/azure"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
@@ -17,8 +18,6 @@ type TestData struct {
 	terraformOptions  *terraform.Options
 	resourceGroupName string
 	vmName           string
-	nicName          string
-	publicIP         string
 }
 
 func setupTestData(t *testing.T) *TestData {
@@ -44,15 +43,11 @@ func setupTestData(t *testing.T) *TestData {
 	// Get outputs
 	resourceGroupName := terraform.Output(t, terraformOptions, "resource_group_name")
 	vmName := terraform.Output(t, terraformOptions, "vm_name")
-	nicName := terraform.Output(t, terraformOptions, "nic_name")
-	publicIP := terraform.Output(t, terraformOptions, "public_ip")
 
 	testData := &TestData{
 		terraformOptions:  terraformOptions,
 		resourceGroupName: resourceGroupName,
 		vmName:           vmName,
-		nicName:          nicName,
-		publicIP:         publicIP,
 	}
 
 	// Add a cleanup function
@@ -68,26 +63,47 @@ func TestAzureInfrastructure(t *testing.T) {
 
 	// Run subtests
 	t.Run("VM Creation and Configuration", func(t *testing.T) {
-		t.Log("Testing if VM exists and is running")
-		vmExists := azure.VirtualMachineExists(t, testData.vmName, testData.resourceGroupName, subscriptionID)
-		assert.True(t, vmExists, "Virtual Machine does not exist")
+		t.Log("Testing VM existence and configuration")
+		
+		// Get the VM instance
+		vm := azure.GetVirtualMachine(t, testData.vmName, testData.resourceGroupName, subscriptionID)
+		assert.NotNil(t, vm, "Virtual Machine should exist")
+
+		// Verify VM size
+		vmSize := azure.GetSizeOfVirtualMachine(t, testData.vmName, testData.resourceGroupName, subscriptionID)
+		assert.Equal(t, compute.VirtualMachineSizeTypes("Standard_B1s"), vmSize, "Incorrect VM size")
+
+		// Get and verify OS disk name
+		osDiskName := azure.GetVirtualMachineOSDiskName(t, testData.vmName, testData.resourceGroupName, subscriptionID)
+		assert.Contains(t, osDiskName, "OSDisk", "OS disk name should contain 'OSDisk'")
 	})
 
 	t.Run("Network Configuration", func(t *testing.T) {
-		t.Log("Testing if NIC has valid IP configuration")
-		assert.NotEmpty(t, testData.publicIP, "Network Interface should have a public IP")
+		t.Log("Testing network interface configuration")
+		
+		// Get the list of NICs attached to the VM
+		nics := azure.GetVirtualMachineNics(t, testData.vmName, testData.resourceGroupName, subscriptionID)
+		assert.NotEmpty(t, nics, "VM should have at least one NIC")
+		
+		// Get the expected NIC name from Terraform
+		expectedNicName := terraform.Output(t, testData.terraformOptions, "nic_name")
+		assert.Contains(t, nics, expectedNicName, "NIC name should match the expected name")
+
+		// Get the public IP from Terraform
+		publicIP := terraform.Output(t, testData.terraformOptions, "public_ip")
+		assert.NotEmpty(t, publicIP, "Network Interface should have a public IP")
 	})
 
 	t.Run("VM Image Configuration", func(t *testing.T) {
 		t.Log("Testing VM image configuration")
-		publisher := terraform.Output(t, testData.terraformOptions, "vm_image_publisher")
-		offer := terraform.Output(t, testData.terraformOptions, "vm_image_offer")
-		sku := terraform.Output(t, testData.terraformOptions, "vm_image_sku")
-		version := terraform.Output(t, testData.terraformOptions, "vm_image_version")
-
-		assert.Equal(t, "Canonical", publisher, "Incorrect image publisher")
-		assert.Equal(t, "0001-com-ubuntu-server-jammy", offer, "Incorrect image offer")
-		assert.Equal(t, "22_04-lts-gen2", sku, "Incorrect image SKU")
-		assert.Equal(t, "latest", version, "Incorrect image version")
+		
+		// Get the VM image details
+		vmImage := azure.GetVirtualMachineImage(t, testData.vmName, testData.resourceGroupName, subscriptionID)
+		
+		// Verify image details
+		assert.Equal(t, "Canonical", vmImage.Publisher, "Incorrect image publisher")
+		assert.Equal(t, "0001-com-ubuntu-server-jammy", vmImage.Offer, "Incorrect image offer")
+		assert.Equal(t, "22_04-lts-gen2", vmImage.SKU, "Incorrect image SKU")
+		assert.Equal(t, "latest", vmImage.Version, "Incorrect image version")
 	})
 }
