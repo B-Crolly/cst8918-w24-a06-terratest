@@ -72,12 +72,19 @@ resource "azurerm_network_interface" "webserver" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.webserver.id
   }
+
+  depends_on = [azurerm_network_security_group.webserver]
 }
 
 # Link the security group to the NIC
 resource "azurerm_network_interface_security_group_association" "webserver" {
   network_interface_id      = azurerm_network_interface.webserver.id
   network_security_group_id = azurerm_network_security_group.webserver.id
+
+  depends_on = [azurerm_network_interface.webserver]
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 # Define the init script template
@@ -120,8 +127,12 @@ resource "azurerm_linux_virtual_machine" "webserver" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = var.ssh_public_key
   }
 
   custom_data = data.cloudinit_config.init.rendered
+
+  depends_on = [
+    azurerm_network_interface_security_group_association.webserver
+  ]
 }

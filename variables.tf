@@ -5,11 +5,18 @@ variable "labelPrefix" {
 }
 
 variable "region" {
-  default = "westus3"
+  description = "The Azure region to deploy to"
+  type        = string
+  default     = "eastus"  # or your preferred region
 }
 
 variable "admin_username" {
+  description = "Username for the VM"
   type        = string
-  default     = "azureadmin"
-  description = "The username for the local user account on the VM."
+  default     = "azureuser"
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for VM access"
+  type        = string
 }
