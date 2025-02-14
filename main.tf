@@ -6,7 +6,7 @@ resource "azurerm_resource_group" "rg" {
 
 # Define a public IP address
 resource "azurerm_public_ip" "webserver" {
-  name                = "${var.labelPrefix}A05PublicIP"
+  name                = "${var.labelPrefix}-A05-PublicIP"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
@@ -93,7 +93,7 @@ resource "azurerm_network_interface" "webserver" {
   name                = "${var.labelPrefix}A05Nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  enable_ip_forwarding = false
+  ip_forwarding_enabled = false
 
   ip_configuration {
     name                          = "${var.labelPrefix}A05NicConfig"
