@@ -1,0 +1,4 @@
+labelPrefix     = "crol0005"
+region          = "westus2"  # or try "centralus", "eastus2", etc.
+admin_username  = "azureuser"
+ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC9PMAurLqAlFPNTjvTDpY6tPcRIpLKZolN3vp5jZHE85axiNzdS6FquWwg4n3HXeHeTAKJAmurmR6FwuE66/vQxJE1rC5WbZtmwV3O7X+HXcFZVyxh8bYmCgxU82hikOutg0aTatR6E0FvWZumIxi+kw+wPJ+zDnRv3hCUyv4Vog0xD1ramAr90+IDM4GdJ7qT5Ty5NERp2Zt/m9pFmyVJSToKRuiylIt2evj+PkGVq1rMRxRMxzCLz+ivdhXRI4UMQbEV8bpRJ309C91O9w3m90j8/Lq41mClljaLwYcLicDn/1T+6dD09dwkmuEKYGcWOq7zan/F9AUwBNVXjawokkrBcLGRQ/SbjPYu7SzxrQQBrqIyCq6ZieAQvpIAmAQlPBhDwzebCZkcxxQmzV3M/a4SVCxuRCWY6U58o9eeQt3KegirfH+pQRCBbW3NLZZzmvisk7CFjIbykO17XwZ501eCm28hWfJSi9GLBuxpJkLe19SF9nTeehTIyHMSYpGyKGAQ7HkERQHq5CgTFNd6u6J41ITO8NlSJyjUubACSIzMvNYITAH9KblP7y+eeeTG2nleryUZVaUtHAO6jcybdrQ7z5IpUdFFQz2FGIsMhP5o2zZ1698uCl9+vFk4+2rNPbfASIP4MtOi56le6qzOVMNS7Q9iU4UhSjOoyV1bGw== crol0005@DESKTOP-CJ71ACN" 
